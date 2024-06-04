@@ -46,19 +46,17 @@ export default function Board() {
       setTurn(!turn)
       setUndoStatus("");
 
-      const result = calWinner(nextSquares);// work with next nextSquares but notwith,squares
+      const result = calWinner(nextSquares);
       if (result) {
-        setWinningSquares(result.line);// work from here, not work from 
+        setWinningSquares(result.line);
       }
     }
   }
 
   const winner = calWinner(squares)?.winner;
-  //const result = calWinner(squares);// not this
   let status;
   if (winner) {
     status = "Winner: " + winner;
-    //setWinningSquares(result.line);
   } else {
     status = "Next player: " + (turn ? "X" : "O");
   }
