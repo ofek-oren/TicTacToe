@@ -3,9 +3,9 @@ import {useState} from 'react';
 
 
 
-function Square({value,onSquareClick}) {
+function Square({value,onSquareClick, isWinningSquare}) {
   return (<button
-    className="square"
+    className={`square ${isWinningSquare ? 'winning' : ''}`}
     onClick={onSquareClick}
     >
       {value}</button>);
@@ -33,6 +33,7 @@ export default function Board() {
   const [turn, setTurn] = useState(true);
   const [squaresStack, setSquaresStack] = useState([Array(9).fill(null)]);
   const [undoStatus, setUndoStatus] = useState("");
+  const [winningSquares, setWinningSquares] = useState([]);
 
   function handleClick(i,turn){
     if(calWinner(squares))
@@ -44,13 +45,20 @@ export default function Board() {
       setSquaresStack([...squaresStack,nextSquares])
       setTurn(!turn)
       setUndoStatus("");
+
+      const result = calWinner(nextSquares);// work with next nextSquares but notwith,squares
+      if (result) {
+        setWinningSquares(result.line);// work from here, not work from 
+      }
     }
   }
 
-  const winner = calWinner(squares);
+  const winner = calWinner(squares)?.winner;
+  //const result = calWinner(squares);// not this
   let status;
   if (winner) {
     status = "Winner: " + winner;
+    //setWinningSquares(result.line);
   } else {
     status = "Next player: " + (turn ? "X" : "O");
   }
@@ -65,6 +73,7 @@ export default function Board() {
     }
     else 
       setUndoStatus("No more undos available. Please reset the game.");
+      setWinningSquares([]);
 
 }
 
@@ -72,28 +81,30 @@ export default function Board() {
     setSquares(Array(9).fill(null));
     setSquaresStack([Array(9).fill(null)])
     setUndoStatus("The game just restared.");
+    setTurn(true);
+    setWinningSquares([]);
   }
 
   return (
     <>
       <div className="status">{status}</div>
       <div className="board-row">
-        <Square value={squares[0]} onSquareClick={()=>handleClick(0,turn)}/>
-        <Square value={squares[1]} onSquareClick={()=>handleClick(1,turn)}/>
-        <Square value={squares[2]} onSquareClick={()=>handleClick(2,turn)}/>
+        <Square value={squares[0]} onSquareClick={() => handleClick(0, turn)} isWinningSquare={winningSquares.includes(0)} />
+        <Square value={squares[1]} onSquareClick={() => handleClick(1, turn)} isWinningSquare={winningSquares.includes(1)} />
+        <Square value={squares[2]} onSquareClick={() => handleClick(2, turn)} isWinningSquare={winningSquares.includes(2)} />
       </div>
       <div className="board-row">
-      <Square value={squares[3]} onSquareClick={()=>handleClick(3,turn)}/>
-      <Square value={squares[4]} onSquareClick={()=>handleClick(4,turn)}/>
-      <Square value={squares[5]} onSquareClick={()=>handleClick(5,turn)}/>
+        <Square value={squares[3]} onSquareClick={() => handleClick(3, turn)} isWinningSquare={winningSquares.includes(3)} />
+        <Square value={squares[4]} onSquareClick={() => handleClick(4, turn)} isWinningSquare={winningSquares.includes(4)} />
+        <Square value={squares[5]} onSquareClick={() => handleClick(5, turn)} isWinningSquare={winningSquares.includes(5)} />
       </div>
       <div className="board-row">
-      <Square value={squares[6]} onSquareClick={()=>handleClick(6,turn)}/>
-      <Square value={squares[7]} onSquareClick={()=>handleClick(7,turn)}/>
-      <Square value={squares[8]} onSquareClick={()=>handleClick(8,turn)}/>
+        <Square value={squares[6]} onSquareClick={() => handleClick(6, turn)} isWinningSquare={winningSquares.includes(6)} />
+        <Square value={squares[7]} onSquareClick={() => handleClick(7, turn)} isWinningSquare={winningSquares.includes(7)} />
+        <Square value={squares[8]} onSquareClick={() => handleClick(8, turn)} isWinningSquare={winningSquares.includes(8)} />
       </div>
-      <Restart onResetClick={()=>handleReset(squares)}/>
-      <Undo onUndoClick={()=>handleUndo(squaresStack)}/>
+      <Restart onResetClick={handleReset} />
+      <Undo onUndoClick={handleUndo} />
       <div className="undoStatus">{undoStatus}</div>
     </>
   );
@@ -114,7 +125,9 @@ function calWinner(squares) {
   for (let i = 0; i < straight.length; i++) {
     const [a, b, c] = straight[i];
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
+      return {  winner: squares[a],
+                line: [a,b,c],
+      };
     }
   }
   return false;
